@@ -12,10 +12,13 @@ import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.database.Cursor
 import android.database.MatrixCursor
+import android.location.LocationManager
 import android.net.Uri
 import android.os.Build.VERSION.SDK_INT
 import android.preference.PreferenceManager
 import org.microg.gms.base.core.BuildConfig
+import android.util.Log
+import androidx.core.content.getSystemService
 import org.microg.gms.common.PackageUtils.warnIfNotMainProcess
 import org.microg.gms.settings.SettingsContract.Auth
 import org.microg.gms.settings.SettingsContract.CheckIn
@@ -36,6 +39,8 @@ private const val SETTINGS_PREFIX = "org.microg.gms.settings."
  * because it provides safe access from different processes which normal [SharedPreferences] don't.
  */
 class SettingsProvider : ContentProvider() {
+
+    private final var TAG = "SettingsProvider"
 
     private val preferences: SharedPreferences by lazy {
         PreferenceManager.getDefaultSharedPreferences(context)
@@ -318,6 +323,10 @@ class SettingsProvider : ContentProvider() {
             Location.CELL_LEARNING -> getSettingsBoolean(key, hasUnifiedNlpLocationBackend("helium314.localbackend", "org.fitchfamily.android.dejavu"))
             Location.GEOCODER_NOMINATIM -> getSettingsBoolean(key, hasUnifiedNlpGeocoderBackend("org.microg.nlp.backend.nominatim") )
             Location.ICHNAEA_ENDPOINT -> getSettingsString(key, BuildConfig.ICHNAEA_ENDPOINT_DEFAULT)
+            Location.FIXED_LOCATION -> {
+                hasFixedLocationEnabled()
+                getSettingsBoolean(key, true)
+            }
             else -> throw IllegalArgumentException("Unknown key: $key")
         }
     }
@@ -325,6 +334,48 @@ class SettingsProvider : ContentProvider() {
     private fun hasUnifiedNlpLocationBackend(vararg packageNames: String) = hasUnifiedNlpPrefixInStringSet("location_backends", *packageNames.map { "$it/" }.toTypedArray())
     private fun hasUnifiedNlpGeocoderBackend(vararg packageNames: String) = hasUnifiedNlpPrefixInStringSet("geocoder_backends", *packageNames.map { "$it/" }.toTypedArray())
 
+    private fun setFixedLocationEnabled(enabled: Boolean) {
+        val locationManager = getContext()?.getSystemService<LocationManager>()
+        Log.d(TAG, "set locationManager: ${locationManager?.toString()}")
+
+        if(locationManager != null) {
+            try {
+                val method = locationManager?.javaClass?.getMethod("setFixedFilter", Boolean::class.javaPrimitiveType)
+                Log.d(TAG, "setFixedFilter method:${method?.toString()}")
+                if(method != null) {
+                    method.invoke(locationManager, enabled)
+                }
+            } catch (e:SecurityException) {
+                Log.d(TAG, "getMethod SecurityException")
+            } catch (e:NoSuchMethodException) {
+                Log.d(TAG, "getMethod NoSuchMethodException")
+            }
+        }
+    }
+    private fun hasFixedLocationEnabled():Boolean {
+        val locationManager = getContext()?.getSystemService<LocationManager>()
+        Log.d(TAG, "locationManager: ${locationManager?.toString()}")
+
+        if(locationManager != null) {
+            try {
+                val method = locationManager?.javaClass?.getMethod("isFixedFilterEnabled")
+                Log.d(TAG, "isFixedFilterEnabled method:${method?.toString()}")
+                if(method != null) {
+                    return method.invoke(locationManager) as Boolean;
+                } else {
+                    return false
+                }
+            } catch (e:SecurityException) {
+                Log.d(TAG, "getMethod SecurityException")
+                return false
+            } catch (e:NoSuchMethodException) {
+                Log.d(TAG, "getMethod NoSuchMethodException")
+                return false
+            }
+        } else {
+            return false
+        }
+    }
     private fun updateLocation(values: ContentValues) {
         if (values.size() == 0) return
         val editor = preferences.edit()
@@ -337,6 +388,10 @@ class SettingsProvider : ContentProvider() {
                 Location.CELL_LEARNING -> editor.putBoolean(key, value as Boolean)
                 Location.GEOCODER_NOMINATIM -> editor.putBoolean(key, value as Boolean)
                 Location.ICHNAEA_ENDPOINT -> (value as String).let { if (it.isBlank()) editor.remove(key) else editor.putString(key, it) }
+                Location.FIXED_LOCATION -> {
+                    editor.putBoolean(key, value as Boolean)
+                    setFixedLocationEnabled(value)
+                }
                 else -> throw IllegalArgumentException("Unknown key: $key")
             }
         }

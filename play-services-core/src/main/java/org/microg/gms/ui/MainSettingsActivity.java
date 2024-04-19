@@ -1,7 +1,12 @@
 package org.microg.gms.ui;
 
+import android.app.ActivityManager;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PermissionInfo;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,6 +21,10 @@ import com.google.android.material.appbar.CollapsingToolbarLayout;
 import org.microg.gms.ui.settings.SettingsProvider;
 
 import static org.microg.gms.ui.settings.SettingsProviderKt.getAllSettingsProviders;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
 
 public class MainSettingsActivity extends AppCompatActivity {
     private AppBarConfiguration appBarConfiguration;

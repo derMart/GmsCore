@@ -14,6 +14,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
+import android.util.Log
 import androidx.core.content.getSystemService
 import androidx.core.os.bundleOf
 import androidx.lifecycle.lifecycleScope
@@ -34,6 +35,7 @@ import org.microg.gms.ui.AppIconPreference
 import org.microg.gms.ui.buildAlertDialog
 import org.microg.gms.ui.getApplicationInfoIfExists
 import org.microg.gms.ui.navigate
+import java.lang.reflect.Method
 
 class LocationPreferencesFragment : PreferenceFragmentCompat() {
     private lateinit var locationApps: PreferenceCategory
@@ -47,6 +49,9 @@ class LocationPreferencesFragment : PreferenceFragmentCompat() {
     private lateinit var cellLearning: TwoStatePreference
     private lateinit var nominatim: TwoStatePreference
     private lateinit var database: LocationAppsDatabase
+    private lateinit var fixedLocation: TwoStatePreference
+
+    private final var TAG = "LocationPreferencesFragment"
 
     init {
         setHasOptionsMenu(true)
@@ -99,6 +104,7 @@ class LocationPreferencesFragment : PreferenceFragmentCompat() {
         cellIchnaea = preferenceScreen.findPreference("pref_location_cell_mls_enabled") ?: cellIchnaea
         cellLearning = preferenceScreen.findPreference("pref_location_cell_learning_enabled") ?: cellLearning
         nominatim = preferenceScreen.findPreference("pref_geocoder_nominatim_enabled") ?: nominatim
+        fixedLocation = preferenceScreen.findPreference("pref_geocoder_fixed_location_enabled") ?: fixedLocation
 
         locationAppsAll.setOnPreferenceClickListener {
             findNavController().navigate(requireContext(), R.id.openAllLocationApps)
@@ -116,6 +122,11 @@ class LocationPreferencesFragment : PreferenceFragmentCompat() {
         configureChangeListener(cellIchnaea) { LocationSettings(requireContext()).cellIchnaea = it }
         configureChangeListener(cellLearning) { LocationSettings(requireContext()).cellLearning = it }
         configureChangeListener(nominatim) { LocationSettings(requireContext()).geocoderNominatim = it }
+        fixedLocation.setOnPreferenceChangeListener { _, newValue ->
+            LocationSettings(requireContext()).fixedLocation = newValue as Boolean
+            true
+        }
+        fixedLocation.isVisible = true
 
         networkProviderCategory.isVisible = requireContext().hasNetworkLocationServiceBuiltIn()
         wifiIchnaea.isVisible = requireContext().hasIchnaeaLocationServiceSupport()
@@ -145,6 +156,7 @@ class LocationPreferencesFragment : PreferenceFragmentCompat() {
             cellIchnaea.isChecked = LocationSettings(context).cellIchnaea
             cellLearning.isChecked = LocationSettings(context).cellLearning
             nominatim.isChecked = LocationSettings(context).geocoderNominatim
+            fixedLocation.isChecked = LocationSettings(context).fixedLocation
             val (apps, showAll) = withContext(Dispatchers.IO) {
                 val apps = database.listAppsByAccessTime()
                 val res = apps.map { app ->

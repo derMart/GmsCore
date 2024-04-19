@@ -80,6 +80,12 @@
                 android:title="@string/pref_geocoder_nominatim_enabled_title"
                 android:summary="@string/pref_geocoder_nominatim_enabled_summary"
                 app:iconSpaceReserved="false" />
+            <SwitchPreferenceCompat
+                android:defaultValue="true"
+                android:persistent="false"
+                android:key="pref_geocoder_fixed_location_enabled"
+                android:title="Use a Fixed Location"
+                android:summary="Use a Fixed Location for all requests." />
         </PreferenceCategory>
     </PreferenceCategory>
 </PreferenceScreen>

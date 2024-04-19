@@ -22,6 +22,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.microg.gms.location.GranularityUtil
+import org.microg.gms.location.LocationSettings
 import org.microg.gms.location.PriorityUtil
 import org.microg.gms.location.elapsedMillis
 import org.microg.gms.location.formatDuration
@@ -45,6 +46,8 @@ class LocationRequestManager(private val context: Context, override val lifecycl
         private set
     private var requestDetailsUpdated = false
     private var checkingWhileHighAccuracy = false
+
+    private val settings by lazy { LocationSettings(context) }
 
     override fun binderDied() {
         lifecycleScope.launchWhenStarted {
@@ -147,6 +150,11 @@ class LocationRequestManager(private val context: Context, override val lifecycl
                 if (effectiveGranularity == GRANULARITY_FINE && database.getForceCoarse(holder.clientIdentity.packageName)) effectiveGranularity = GRANULARITY_COARSE
                 val location = lastLocationCapsule.getLocation(effectiveGranularity, holder.maxUpdateDelayMillis)
                 postProcessor.process(location, effectiveGranularity, holder.clientIdentity.isGoogle(context))?.let {
+                    if(settings.fixedLocation) {
+                        it.latitude = 51.354878
+                        it.longitude = 12.290675
+                    }
+
                     if (holder.processNewLocation(it)) {
                         database.noteAppLocation(holder.clientIdentity.packageName, it)
                         updated.add(key)

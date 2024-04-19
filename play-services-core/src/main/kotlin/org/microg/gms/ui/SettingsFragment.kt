@@ -47,6 +47,10 @@ class SettingsFragment : ResourceSettingsFragment() {
             findNavController().navigate(requireContext(), R.id.openLocationSettings)
             true
         }
+        findPreference<Preference>(PREF_LOCATION_ALL)!!.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            findNavController().navigate(requireContext(), R.id.openLocationSettingsAll)
+            true
+        }
         findPreference<Preference>(PREF_VENDING)!!.onPreferenceClickListener = Preference.OnPreferenceClickListener {
             findNavController().navigate(requireContext(), R.id.openVendingSettings)
             true
@@ -135,6 +139,7 @@ class SettingsFragment : ResourceSettingsFragment() {
         const val PREF_CHECKIN = "pref_checkin"
         const val PREF_VENDING = "pref_vending"
         const val PREF_ACCOUNTS = "pref_accounts"
+        const val PREF_LOCATION_ALL = "pref_location_all"
     }
 
     init {

@@ -53,6 +53,7 @@ class LocationManager(private val context: Context, override val lifecycle: Life
     private var boundToSystemNetworkLocation: Boolean = false
     private val activePermissionRequestLock = Mutex()
     private var activePermissionRequest: Deferred<Boolean>? = null
+    private val settings by lazy { LocationSettings(context) }
 
     val deviceOrientationManager = DeviceOrientationManager(context, lifecycle)
 
@@ -81,6 +82,13 @@ class LocationManager(private val context: Context, override val lifecycle: Life
             ensurePermissions()
             val preLocation = lastLocationCapsule.getLocation(effectiveGranularity, request.maxUpdateAgeMillis)
             val processedLocation = postProcessor.process(preLocation, effectiveGranularity, clientIdentity.isGoogle(context))
+
+            // Martin: Filter Location here
+            if(processedLocation != null && settings.fixedLocation) {
+                processedLocation.latitude = 51.354878
+                processedLocation.longitude = 12.290675
+            }
+
             if (!context.noteAppOpForEffectiveGranularity(clientIdentity, effectiveGranularity)) {
                 // App Op denied
                 null

@@ -170,6 +170,7 @@ object SettingsContract {
         const val CELL_LEARNING = "location_cell_learning"
         const val GEOCODER_NOMINATIM = "location_geocoder_nominatim"
         const val ICHNAEA_ENDPOINT = "location_ichnaea_endpoint"
+        const val FIXED_LOCATION = "location_fixed"
 
         val PROJECTION = arrayOf(
             WIFI_ICHNAEA,
@@ -179,6 +180,7 @@ object SettingsContract {
             CELL_LEARNING,
             GEOCODER_NOMINATIM,
             ICHNAEA_ENDPOINT,
+            FIXED_LOCATION
         )
     }
 

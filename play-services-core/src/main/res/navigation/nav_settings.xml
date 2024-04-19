@@ -33,8 +33,11 @@
             android:id="@+id/openLocationSettings"
             app:destination="@id/nav_location" />
         <action
+            android:id="@+id/openLocationSettingsAll"
+            app:destination="@id/nav_locationall" />
+        <action
             android:id="@+id/openAbout"
-            app:destination="@id/aboutFragment" />
+            app:destination="@id/nav_location" />
     </fragment>
 
     <!-- Self-Check -->
@@ -169,4 +172,5 @@
     <!-- Included -->
 
     <include app:graph="@navigation/nav_location" />
+    <include app:graph="@navigation/nav_locationall" />
 </navigation>

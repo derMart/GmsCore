@@ -47,4 +47,11 @@ class LocationSettings(private val context: Context) {
     var ichnaeaContribute: Boolean
         get() = false
         set(value) = Unit
+    var fixedLocation: Boolean
+        get() = getSettings(SettingsContract.Location.FIXED_LOCATION) { c ->
+            c.getInt(0) != 0
+        }
+        set(value) {
+            setSettings { put(SettingsContract.Location.FIXED_LOCATION, value)}
+        }
 }
